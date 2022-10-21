@@ -1,0 +1,38 @@
+.otp tbody tr:nth-child(odd) {
+  background-color: #eee;
+}
+body {
+  padding: 1rem;
+  direction: ltr;
+}
+#items > div {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #eee;
+  border-bottom: 1px solid #333;
+}
+#items > div:nth-child(even) {
+  background-color: #afe !important;
+}
+[data-group="actions"] > div {
+  margin-bottom: 0.5rem;
+}
+
+[x-cloak] {
+	display: none;
+}
+
+.btn.disabled {
+	position: relative;
+}
+
+.btn.disabled span {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
