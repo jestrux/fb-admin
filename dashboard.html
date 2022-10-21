@@ -256,6 +256,8 @@
 				addDoc,
 				setDoc,
 				getDocs,
+				query,
+				orderBy,
 				deleteDoc,
 				onSnapshot,
 			} from "https://www.gstatic.com/firebasejs/9.12.1/firebase-firestore.js";
@@ -280,6 +282,8 @@
 				addDoc,
 				setDoc,
 				getDocs,
+				query,
+				orderBy,
 				deleteDoc,
 				onSnapshot,
 				app,
@@ -341,6 +345,8 @@
 					addDoc,
 					setDoc,
 					getDocs,
+					query,
+					orderBy,
 					deleteDoc,
 					onSnapshot,
 					app,
@@ -353,9 +359,11 @@
 
 					if (cachedUsers) users = JSON.parse(cachedUsers);
 					else {
-						const querySnapshot = await getDocs(
-							collection(db, "accounts")
+						const q = query(
+							collection(db, "accounts"),
+							orderBy("created_at", "desc")
 						);
+						const querySnapshot = await getDocs(q);
 
 						querySnapshot.forEach(async (document) => {
 							// console.log(document.id, document.data());
