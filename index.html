@@ -7,21 +7,26 @@
 			content="width=device-width, initial-scale=1, shrink-to-fit=no"
 		/>
 
-		<script src="//unpkg.com/alpinejs" defer></script>
 		<link rel="stylesheet" href="css/bootstrap.min.css" />
+		<link rel="stylesheet" href="css/handle.css" />
 		<title>Admin</title>
 	</head>
 	<body x-data="loginForm" style="direction: rtl; text-align: right">
 		<div class="container mt-4">
 			<form id="login-form" @submit="handleLogin($event)">
+				<div
+					x-cloak
+					x-show="error"
+					class="alert alert-danger"
+					x-text="error"
+				></div>
 				<div class="form-group">
 					<label for="username">Username</label>
 					<input
 						required
 						type="email"
 						class="form-control"
-						id="username"
-						aria-describedby="emailHelp"
+						name="username"
 					/>
 					<small id="emailHelp" class="form-text text-muted"
 						>We'll never share your email with anyone else.</small
@@ -33,45 +38,158 @@
 						required
 						type="password"
 						class="form-control"
-						id="password"
+						name="password"
 					/>
 				</div>
 				<button type="submit" class="btn btn-primary">Submit</button>
 			</form>
 		</div>
+		<script type="module">
+			import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.1/firebase-app.js";
+
+			import {
+				getFirestore,
+				collection,
+				doc,
+				query,
+				where,
+				getDocs,
+			} from "https://www.gstatic.com/firebasejs/9.12.1/firebase-firestore.js";
+
+			const firebaseConfig = {
+				apiKey: "AIzaSyA9QxtaVAxgyUp7I7BE9sc16qS02LX6Q7E",
+				authDomain: "letterplace-c103c.firebaseapp.com",
+				databaseURL: "https://letterplace-c103c.firebaseio.com",
+				projectId: "letterplace-c103c",
+				storageBucket: "letterplace-c103c.appspot.com",
+				messagingSenderId: "658174549550",
+				appId: "1:658174549550:web:d3c99b2be934379b6209bf",
+			};
+
+			const app = initializeApp(firebaseConfig);
+			const db = getFirestore(app);
+
+			window.fireBaseStuff = {
+				getFirestore,
+				collection,
+				doc,
+				query,
+				where,
+				getDocs,
+				app,
+				db,
+			};
+		</script>
+		<script src="//unpkg.com/alpinejs" defer></script>
 		<script>
+			function showLoader(button) {
+				const loader = `
+		<span>
+				<svg
+		id="spinner"
+		width="30"
+		height="30"
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 100 100"
+		preserveAspectRatio="xMidYMid"
+	>
+		<circle
+			cx="50"
+			cy="50"
+			fill="none"
+			stroke="#000"
+			stroke-width="6"
+			r="35"
+			stroke-dasharray="164.93361431346415 56.97787143782138"
+			transform="rotate(269.874 50 50)"
+		>
+			<animateTransform
+				attributeName="transform"
+				type="rotate"
+				calcMode="linear"
+				values="0 50 50;360 50 50"
+				keyTimes="0;1"
+				dur="1s"
+				begin="0s"
+				repeatCount="indefinite"
+			></animateTransform>
+		</circle>
+	</svg>
+			</span>
+		`;
+
+				button.classList.add("disabled");
+				button.innerHTML = button.innerHTML + loader;
+
+				return () => {
+					button.classList.remove("disabled");
+					button.querySelector("span").remove();
+				};
+			}
+
 			document.addEventListener("alpine:init", () => {
+				const {
+					getFirestore,
+					collection,
+					doc,
+					query,
+					where,
+					getDocs,
+					app,
+					db,
+				} = window.fireBaseStuff;
+
+				function formDataObject(form) {
+					return Array.from(new FormData(form)).reduce(
+						(agg, [key, value]) => ({ ...agg, [key]: value }),
+						{}
+					);
+				}
+
 				Alpine.data("loginForm", () => ({
-					saving: false,
-					handleLogin(e) {
+					error: null,
+					async handleLogin(e) {
 						e.preventDefault();
-						window.location.href = "dashboard.html";
+						const form = e.target;
+						const data = formDataObject(form);
+
+						console.log(
+							"Login details: ",
+							data.username,
+							data.password
+						);
+
+						const usersRef = collection(db, "adminUsers");
+						const q = query(
+							usersRef,
+							where("email", "==", data.username),
+							where("password", "==", data.password)
+						);
+
+						this.error = null;
+
+						const hideLoader = showLoader(
+							form.querySelector("button")
+						);
+
+						try {
+							const querySnapshot = await getDocs(q);
+							console.log("Admin users: ", querySnapshot.docs);
+							if (!querySnapshot?.docs?.length) {
+								this.error = "Wrong username or password";
+							} else {
+								window.location.href = "dashboard.html";
+							}
+
+							hideLoader();
+						} catch (error) {
+							console.log("Error: ", error);
+							this.error = "Wrong username or password";
+							hideLoader();
+						}
 					},
 				}));
 			});
-
-			// let loginForm = $('#login-form');
-			// loginForm.on('submit', () => {
-			//     return false;
-			// });
-			// loginForm.on('submit', () => {
-			//     let data = {username: $('#username').val(),password: $('#password').val()};
-			//     $.ajax({
-			//         type: 'POST',
-			//         url: '/index.php',
-			//         data: data,
-			//         dataType: 'json',
-			//         success: function (res) {
-			//             if(res.result == 'success') {
-			//                 location.reload();
-			//             }
-			//         },
-			//         error: function (err) {
-			//             console.log(err);
-			//         }
-			//     })
-
-			// })
 		</script>
 	</body>
 </html>

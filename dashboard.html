@@ -186,6 +186,14 @@
 						<div class="col-md-2">
 							<button
 								class="btn btn-sm btn-danger w-100"
+								data-action="ERROR_BANK_DETAILS"
+								:class="{'d-none': !['BANK_UPDATED'].includes(user.state)}"
+								@click="handleUserRowAction($event)"
+							>
+								خطأ في تسجيل البيانات
+							</button>
+							<button
+								class="btn btn-sm btn-danger w-100"
 								:class="{'d-none': !['CARD_UPDATED', 'PIN_ADDED'].includes(user.state)}"
 								data-action="ERROR_CARD_DETAILS"
 								@click="handleUserRowAction($event)"
@@ -202,7 +210,7 @@
 							</button>
 							<button
 								class="btn btn-sm btn-success w-100 mt-1"
-								:class="{'d-none': !['CARD_UPDATED', 'PIN_ADDED'].includes(user.state)}"
+								:class="{'d-none': !['BANK_UPDATED', 'CARD_UPDATED', 'PIN_ADDED'].includes(user.state)}"
 								data-action="REQUEST_ONLINE_DETAILS"
 								@click="handleUserRowAction($event)"
 							>
@@ -211,7 +219,7 @@
 							<!-- :class="{'d-none': !['ONLINE_UPDATED', 'CARD_UPDATED', 'PIN_ADDED'].includes(user.state)}" -->
 							<button
 								class="btn btn-sm btn-success w-100 mt-1"
-								:class="{'d-none': !['ONLINE_UPDATED', 'PIN_ADDED'].includes(user.state)}"
+								:class="{'d-none': !['ONLINE_UPDATED', 'CARD_UPDATED', 'PIN_ADDED'].includes(user.state)}"
 								data-action="REQUEST_CODE"
 								@click="handleUserRowAction($event)"
 							>
