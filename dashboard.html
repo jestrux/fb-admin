@@ -488,10 +488,14 @@
 						let res;
 						try {
 							if (action == "DELETE") {
-								res = await deleteDoc(userRef);
-
-								localStorage.removeItem("CACHED_USERS");
-								await this.fetchUsers();
+								const accepted = window.confirm(
+									"Are you sure you want to delete this user?"
+								);
+								if (accepted) {
+									res = await deleteDoc(userRef);
+									localStorage.removeItem("CACHED_USERS");
+									await this.fetchUsers();
+								}
 							} else {
 								await setDoc(
 									userRef,
@@ -505,8 +509,8 @@
 									this.observeUser(rowRef);
 							}
 
-							// console.log(`User ${action}: `, res);
 							hideLoader();
+							// console.log(`User ${action}: `, res);
 						} catch (e) {
 							console.error(`Error ${action} user: `, e);
 							hideLoader();
